@@ -17,49 +17,57 @@
 # You should have received a copy of the GNU General Public License along with
 # MCchatstats. If not, see <http://www.gnu.org/licenses/>.
 
-import sys, math
+import sys, math, json
 from datetime import datetime
 
 def magnitude(x0, y0, x1, y1):
 	return math.sqrt(pow(float(x0) - float(x1), 2) + pow(float(y0) - float(y1), 2))
 
-def locationName(location):
-	threshold = 50 # metres
-	location_db_filename = 'locations.dat'
-
+def locationName(user_location, locations_filename, location_threshold):
 	try:
-		location_db = open(location_db_filename, 'r')
+		locations_file = open(locations_filename, 'r')
+		locations_data = locations_file.read().replace('var markersDB={','{', 1).replace('};', '}', 1)
+		locations_dict = json.loads(locations_data)
+
 	except IOError:
-		print "Unable to open file '" + location_db_filename + "' for reading. Cannot determine locations."
-		return "Somewhere"
+		sys.stderr.write("Unable to open file '" + locations_filename + "' for reading. Cannot determine locations.\n")
+		return "at an unknown location"
+
+	except ValueError:
+		sys.stderr.write("Error parsing '" + locations_filename + "'. Cannot determine locations.\n")
+		return "at an unknown location"
+
+	else:
+		locations_file.close()
 	
-	locations = dict()
-
-	for item in location_db:
-		x, z, name = item.split(None, 2)
-		locations[name[1:-2]] = [x, z] # Remove newline and quotes
-
-	location_db.close()
+	# Extract a list of location co-ordinates x, y, z and text
+	locations = None
+	for k in locations_dict.keys():
+		if k.startswith('Locations'):
+			locations = locations_dict[k]['raw']
 
 	distances = dict()
-	for name, xz in locations.iteritems():
-		distances[name] = magnitude(xz[0], xz[1], location[0], location[2])
+	for location in locations:
+		distances[location['text']] = magnitude(location['x'], location['z'], user_location[0], user_location[2])
 	
 	nearest = min(distances, key=distances.get)
 	
-	if distances[nearest] > threshold:
-		nearest = 'somewhere far away'
+	if distances[nearest] > location_threshold:
+		return 'somewhere far away'
+	else:
+		return '%.1f m away from %s' % (distances[nearest], nearest.replace('\n', ' ') )
 	
-	return nearest
-
+	return None
 
 def main(*args):
 	# Parse argument(s)
-	if not (len(args) == 1 + 1):
-		print "Usage:", args[0], "[input chat file]"
+	if not (len(args) == 3 + 1):
+		print "Usage:", args[0], "[input log-file] [overviewer markers database file] [location threshold in metres]"
 		return 1
 	
-	chatfilename = args[1]
+	chatfilename = str(args[1])
+	markers_filename = str(args[2])
+	location_threshold = float(args[3])
 
 	try:
 		chatfile = open(chatfilename, 'r')
@@ -156,7 +164,7 @@ def main(*args):
 
 	# Display player last location
 	for player, location in last_location.iteritems():
-		print player, "previously connected near", locationName(location)
+		print player, "previously connected", locationName(location, markers_filename, location_threshold)
 
 	print # blank
 
