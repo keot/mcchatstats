@@ -161,7 +161,7 @@ def main(*args):
 	
 	# Display player durations
 	for player, duration in play_duration_sorted:
-		print player, "has played for", duration
+		print str(player), "has played for", str(duration)
 	
 	print # blank
 
