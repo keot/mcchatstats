@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # MCchatstats. If not, see <http://www.gnu.org/licenses/>.
 
-import sys, math, json
+import sys, math, json, operator
 from datetime import datetime
 
 def magnitude(x0, y0, x1, y1):
@@ -58,6 +58,14 @@ def locationName(user_location, locations_filename, location_threshold):
 		return '%.1f m away from %s' % (distances[nearest], nearest.replace('\n', ' ') )
 	
 	return None
+
+def humaniseDays(days):
+	if days == 0:
+		return "today"
+	elif days == 1:
+		return "yesterday"
+	else:
+		return str(days) + " days ago"
 
 def main(*args):
 	# Parse argument(s)
@@ -142,13 +150,16 @@ def main(*args):
 	
 
 	# Work out last known co-ordinates and connection time
-	last_connected = dict()
+	last_connected_dict = dict()
 	last_location = dict()
 
 	for log in sortedlogfile: # in ascending order
 		if (log['action'] == 'connected'):
-			last_connected[log['username']] = log['timestamp']
+			last_connected_dict[log['username']] = log['timestamp']
 			last_location[log['username']] = log['location']
+
+	# Convert dicts into ordered lists
+	last_connected = sorted(last_connected_dict.iteritems(), key=operator.itemgetter(1), reverse=True)
 	
 	# Display player durations
 	for player, duration in play_duration.iteritems():
@@ -157,8 +168,9 @@ def main(*args):
 	print # blank
 
 	# Display player last connections
-	for player, connected in last_connected.iteritems():
-		print player, "was last seen", datetime.today() - connected, "ago."
+	for player, connected in last_connected:
+		delta = datetime.today() - connected
+		print player, "was last played", humaniseDays(delta.days) + "."
 	
 	print # blank
 
