@@ -155,11 +155,12 @@ def main(*args):
 			last_connected_dict[log['username']] = log['timestamp']
 			last_location[log['username']] = log['location']
 
-	# Convert dicts into ordered lists
+	# Sort various statistics
 	last_connected = sorted(last_connected_dict.iteritems(), key=operator.itemgetter(1), reverse=True)
+	play_duration_sorted = sorted(play_duration.iteritems(), key=operator.itemgetter(1), reverse=True)
 	
 	# Display player durations
-	for player, duration in play_duration.iteritems():
+	for player, duration in play_duration_sorted:
 		print player, "has played for", duration
 	
 	print # blank
