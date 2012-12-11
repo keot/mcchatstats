@@ -160,14 +160,17 @@ def main(*args):
 	play_duration_sorted = sorted(play_duration.iteritems(), key=operator.itemgetter(1), reverse=True)
 	
 	# Display player durations
+	top_duration = play_duration_sorted[0][1]
 	for player, duration in play_duration_sorted:
-		print str(player), "has played for", str(duration)
+		percentage = (duration.total_seconds() / top_duration.total_seconds() ) * 100.0
+		print str(player), "has played for", str(duration), "(" + str(percentage) + "%)"
 	
 	print # blank
 
 	# Display player last connections
+	now = datetime.today()
 	for player, connected in last_connected:
-		delta = datetime.today() - connected
+		delta = now - connected
 		print player, "was last played", humaniseDays(delta.days) + "."
 	
 	print # blank
