@@ -133,7 +133,6 @@ def main(*args):
 	# Sort the logfile
 	sortedlogfile = sorted(logfile, key=lambda item: item['timestamp'])
 	
-	
 	# Calculate play durations
 	play_duration = dict() # {'username': duration}
 	play_connected = dict() # {'username': timestamp}
@@ -147,8 +146,6 @@ def main(*args):
 			else:
 				play_duration[log['username']] = (log['timestamp'] - play_connected[log['username']])
 				
-	
-
 	# Work out last known co-ordinates and connection time
 	last_connected_dict = dict()
 	last_location = dict()
@@ -185,7 +182,6 @@ def main(*args):
 	for log in sortedlogfile:
 		if (log['action'] == 'chat'):
 			pass #print str(log['timestamp']) + '\t' + log['username'] + ':\t' + log['text']
-
 
 	return 0
 
