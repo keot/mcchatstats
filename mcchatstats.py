@@ -61,9 +61,9 @@ def locationName(user_location, locations_filename, location_threshold):
 
 def humaniseDays(days):
 	if days == 0:
-		return "today"
-	elif days == 1:
 		return "yesterday"
+	elif days == 1:
+		return str(days) + " day ago"
 	else:
 		return str(days) + " days ago"
 
@@ -159,33 +159,43 @@ def main(*args):
 	last_connected = sorted(last_connected_dict.iteritems(), key=operator.itemgetter(1), reverse=True)
 	play_duration_sorted = sorted(play_duration.iteritems(), key=operator.itemgetter(1), reverse=True)
 	
-	# Display player durations
+
+	# HTML Output
+
+	print "<h3>Total Time Online</h3>"
+	print "<dl id=\"timeonline\">"
+	
 	top_duration = play_duration_sorted[0][1]
 	for player, duration in play_duration_sorted:
 		percentage = (duration.total_seconds() / top_duration.total_seconds() ) * 100.0
-		print str(player), "has played for", str(duration), "(" + str(percentage) + "%)"
+		print "\t<dt><span class=\"player\">" + str(player) + "</span></dt>"
+		print "\t<dd class=\"bar\"><span class=\"barchart\" style=\"width: %.1f%%;\">%.1f%%</span></dd>" % (percentage, percentage)
+		print "\t<dd><span class=\"time\">" + str(duration) + "</span></dd>"
 	
-	print # blank
+	print "</dl>"
+	print
 
-	# Display player last connections
+
+	print "<h3>Last Time Online</h3>"
+	print "<dl id=\"lastplayed\">"
+
 	now = datetime.today()
 	for player, connected in last_connected:
 		delta = now - connected
-		print player, "was last played", humaniseDays(delta.days) + "."
+		print "\t<dt><span class=\"player\">" + str(player) + "</span></dt>"
+		print "\t<dd><span class=\"relativetime\">" + humaniseDays(delta.days) + "</span></dd>"
 	
-	print # blank
+	print "</dl>"
+	print
 
-	# Display player last location
+	print "<h3>Previously Connected Near&hellip;</h3>"
+	print "<dl id=\"lastplayed\">"
+
 	for player, location in last_location.iteritems():
-		print player, "previously connected", locationName(location, markers_filename, location_threshold)
+		print "\t<dt><span class=\"player\">" + str(player) + "</span></dt>"
+		print "\t<dd><span class=\"distance\">" + locationName(location, markers_filename, location_threshold) + "</span></dd>"
 
-	print # blank
-
-	#print "Chat log:"
-		
-	for log in sortedlogfile:
-		if (log['action'] == 'chat'):
-			pass #print str(log['timestamp']) + '\t' + log['username'] + ':\t' + log['text']
+	print "</dl>"
 
 	return 0
 
