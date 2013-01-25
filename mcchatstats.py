@@ -62,10 +62,8 @@ def locationName(user_location, locations_filename, location_threshold):
 def humaniseDays(days):
 	if days == 0:
 		return "yesterday"
-	elif days == 1:
-		return str(days) + " day ago"
 	else:
-		return str(days) + " days ago"
+		return str(days + 1) + " day ago"
 
 def main(*args):
 	# Parse argument(s)
