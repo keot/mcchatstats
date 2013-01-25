@@ -123,6 +123,10 @@ def main(*args):
 			elif (parts[0][-1] == ']') and (parts[1] == 'logged') and (parts[2] == 'in') and (parts[3] == 'with') and (parts[4] == 'entity') and (parts[5] == 'id'):
 				logfile.append({'timestamp': raw_timestamp, 'username': parts[0][0:item.find('[/')], 'action': 'connected', 'location': [parts[8][1:-1], parts[9][:-1], parts[10][:-1] ] })
 
+			# Action: moved_wrongly
+			elif (parts[1] == 'moved') and (parts[2] == 'wrongly!'):
+				logfile.append({'timestamp': raw_timestamp, 'username': parts[0], 'action': 'moved_wrongly'})
+
 		except IndexError:
 			pass # not valid, so ignore
 
@@ -157,6 +161,16 @@ def main(*args):
 	last_connected = sorted(last_connected_dict.iteritems(), key=operator.itemgetter(1), reverse=True)
 	play_duration_sorted = sorted(play_duration.iteritems(), key=operator.itemgetter(1), reverse=True)
 	
+	# Wrong move statistics
+	moved_wrongly_counts = dict()
+	for log in sortedlogfile:
+		if (log['action'] == 'moved_wrongly'):
+			if not log['username'] in moved_wrongly_counts:
+				moved_wrongly_counts[log['username'] ] = 1
+			else:
+				moved_wrongly_counts[log['username'] ] += 1
+	
+	moved_wrongly_sorted_counts = sorted(moved_wrongly_counts.iteritems(), key=operator.itemgetter(1), reverse=True)
 
 	# HTML Output
 
@@ -194,6 +208,17 @@ def main(*args):
 		print "\t<dd><span class=\"distance\">" + locationName(location, markers_filename, location_threshold) + "</span></dd>"
 
 	print "</dl>"
+	print
+
+	print "<h3>Moved Wrongly Counts</h3>"
+	print "<dl id=\"lastplayed\">"
+
+	for player, count in moved_wrongly_sorted_counts:
+		print "\t<dt><span class=\"player\">" + str(player) + "</span></dt>"
+		print "\t<dd><span>" + str(count) + "</span></dd>"
+
+	print "</dl>"
+	
 
 	return 0
 
