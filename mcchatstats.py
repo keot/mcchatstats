@@ -63,7 +63,7 @@ def humaniseDays(days):
 	if days == 0:
 		return "yesterday"
 	else:
-		return str(days + 1) + " day ago"
+		return str(days + 1) + " days ago"
 
 def main(*args):
 	# Parse argument(s)
