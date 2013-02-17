@@ -18,7 +18,7 @@
 # MCchatstats. If not, see <http://www.gnu.org/licenses/>.
 
 import sys, math, json, operator
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def magnitude(x0, y0, x1, y1):
 	return math.sqrt(pow(float(x0) - float(x1), 2) + pow(float(y0) - float(y1), 2))
@@ -58,6 +58,45 @@ def locationName(user_location, locations_filename, location_threshold):
 		return '%.1f m away from %s' % (distances[nearest], nearest.replace('\n', ' ') )
 	
 	return None
+
+def activityLog(logfile, history=14, resolution=15):
+	# Returns an tuple containing a activity log and the set of players
+	# logfile: the processed logfile
+	# history: number of days to look back from 'now'
+	# resolution: number of minutes to look at individually
+
+	activity = list() # the resulting activity log
+	players = set()
+	connections = set() # set of active users for this segment
+	disconnections = set()
+	previous_disconnections = set()
+
+	# Iterate through the past week
+	start = datetime.today()
+	now = datetime(start.year, start.month, start.day, start.hour) - timedelta(days=history)
+	while (now <= start):
+		for log in logfile:
+			if (log['timestamp'] >= now) and (log['timestamp'] < now + timedelta(minutes=resolution) ):
+				# Interpret logfile
+				if log['action'] == 'connected':
+					connections.add(log['username'])
+					players.add(log['username'])
+				elif log['action'] == 'disconnected':
+					disconnections.add(log['username'])
+					players.add(log['username'])
+
+		for item in previous_disconnections:
+			connections.discard(item)
+
+		activity.append((now, connections.copy(), len(connections) ) )
+		
+		previous_disconnections = disconnections.copy()
+		disconnections.clear()
+
+		now += timedelta(minutes=resolution)
+	# end while date
+
+	return activity, players
 
 def humaniseDays(days):
 	if days == 0:
@@ -219,6 +258,7 @@ def main(*args):
 
 	print "</dl>"
 	
+	#activityLog(sortedlogfile)
 
 	return 0
 
