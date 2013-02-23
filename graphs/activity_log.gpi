@@ -1,0 +1,66 @@
+reset
+
+# Perceptual Edge Medium Colours
+medium_k = "#737373"
+medium_r = "#ff3e5c"
+medium_g = "#5fcc60"
+medium_b = "#5298d8"
+medium_o = "#ffa44c"
+medium_p = "#a859af"
+medium_c = "#d86752"
+medium_m = "#e36fb6"
+
+# Perceptual Edge Highlight Colours
+highlight_k = "#010202"
+highlight_r = "#fe0022"
+highlight_g = "#009441"
+highlight_b = "#1b52ae"
+highlight_o = "#ff7300"
+highlight_p = "#710095"
+highlight_c = "#ad001a"
+highlight_m = "#c20097"
+
+# My Colours
+border_grey = "#c0c0c0"
+tic_black = "#000000"
+white = "#ffffff"
+
+# Color function
+perceptual_edge_medium(x) = x == 2 ? medium_r \
+	: x == 3 ? medium_g \
+	: x == 4 ? medium_b \
+	: x == 5 ? medium_o \
+	: x == 6 ? medium_p \
+	: x == 7 ? medium_c \
+	: x == 8 ? medium_m \
+	: medium_k
+
+set encoding utf8
+set term pngcairo enhanced color solid transparent font 'SourceSansPro-Regular,10' linewidth 1 rounded size 640,360
+set output "output/activity_log.png"
+
+unset title
+unset xlabel
+set ylabel "Active Players"
+
+set grid xtics ytics back lt 2 lc rgb border_grey
+set xtics out nomirror tc rgb tic_black rotate by 60 right offset 0.5,0
+set ytics out nomirror tc rgb tic_black
+set border back lc rgb border_grey
+
+set style fill transparent solid 0.5
+
+set ytics 1
+set yrange [0:]
+unset mytics
+
+set xdata time
+set timefmt "\"%Y-%m-%d %H:%M:%S\""
+set format x "%a, %b %d %H:%M"
+set xtics 43200 # half a day
+
+set obj 1 rectangle from graph 0,0 to graph 1,1 behind fc rgb white # background
+
+set key outside top center horizontal autotitle columnhead opaque spacing 2 samplen 1.5 width 3 box lc rgb border_grey
+
+plot for [i=2:9] "graphs/activity_log.dat" using 1:i with filledcurves lc rgb perceptual_edge_medium(i)

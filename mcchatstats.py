@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # MCchatstats. If not, see <http://www.gnu.org/licenses/>.
 
-import sys, math, json, operator
+import sys, math, json, operator, subprocess
 from datetime import datetime, timedelta
 
 def magnitude(x0, y0, x1, y1):
@@ -88,7 +88,7 @@ def activityLog(logfile, history=14, resolution=15):
 		for item in previous_disconnections:
 			connections.discard(item)
 
-		activity.append((now, connections.copy(), len(connections) ) )
+		activity.append((now, connections.copy() ) )
 		
 		previous_disconnections = disconnections.copy()
 		disconnections.clear()
@@ -96,7 +96,41 @@ def activityLog(logfile, history=14, resolution=15):
 		now += timedelta(minutes=resolution)
 	# end while date
 
-	return activity, players
+	# Output data
+	datafile = open("graphs/activity_log.dat", "w")
+	datafile.write("x_axis")
+	for player in sorted(players):
+		datafile.write("\t%s" % (player) )
+	datafile.write("\n")
+
+	for item in sorted(activity):
+		x, y = item
+
+		datafile.write("\"%s\"" % x)
+
+		accumulator = 0 # for a stacked filledcurves plot, we need to accumulate values
+
+		for player in sorted(players):
+			if player in y:
+				accumulator += 1
+				datafile.write("\t%d" % (accumulator) )
+			else:
+				datafile.write("\t0")
+
+		datafile.write("\n")
+	
+	datafile.close()
+
+	# Generate graph
+	devnull = open("/dev/null", "w")
+	subprocess.call(["gnuplot", "graphs/activity_log.gpi"], stderr=devnull, stdout=devnull)
+	devnull.close()
+
+	print "<h3>Activity Log</h3>"
+	print "<img src=\"activity_log.png\" alt=\"Activtiy Log\" width=\"640px\" height=\"360px\">"
+	
+	return
+
 
 def humaniseDays(days):
 	if days == 0:
@@ -258,7 +292,7 @@ def main(*args):
 
 	print "</dl>"
 	
-	#activityLog(sortedlogfile)
+	activityLog(sortedlogfile)
 
 	return 0
 
