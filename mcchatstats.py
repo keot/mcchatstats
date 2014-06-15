@@ -20,6 +20,10 @@
 import sys, math, json, operator, subprocess, gzip, glob, os, os.path, time
 from datetime import datetime, timedelta
 
+sys.path.append("nbt")
+import nbt
+from nbt.nbt import NBTFile
+
 debug = True
 gzip_logfile_extension = ".log.gz" # default is ".log.gz"
 action_list = list()
@@ -110,11 +114,15 @@ def main(*args):
 		input_directory_name = str(args[1])
 		days_history = int(args[2])
 		input_locations_name = str(args[3])
+		player_dat_directory = str(args[4])
 
 	except IndexError:
-		sys.stderr.write("Usage: %s [input directory] [days to look back] [location data]\n" % (args[0]) )
+		sys.stderr.write("Usage: %s [input directory] [days to look back] [location data] [player .dat directory]\n" % (args[0]) )
 		return 1
 	
+	if player_dat_directory[-1] != "/":
+		player_dat_directory += "/"
+
 	output_dict["created_on"] = str(datetime.today() )
 	output_dict["history"] = days_history
 	
@@ -173,6 +181,17 @@ def main(*args):
 		if p not in players:
 			players[p] = dict()
 		players[p]["last_location"] = locationName(last_location[p], input_locations_name)
+	
+	# NBT Parsing
+	for p in players:
+		player_dat = player_dat_directory + p + ".dat"
+		if os.path.isfile(player_dat):
+			nbt_player = NBTFile(player_dat)
+			players[p]["health"] = int(str(nbt_player["Health"]))   
+			players[p]["hunger"] = int(str(nbt_player["foodLevel"]))
+			players[p]["level"] = int(str(nbt_player["XpLevel"]))   
+			players[p]["score"] = int(str(nbt_player["Score"]))     
+
 	
 	output_dict["players"] = players
 
