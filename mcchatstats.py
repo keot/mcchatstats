@@ -134,7 +134,7 @@ def main(*args):
 	if player_dat_directory[-1] != "/":
 		player_dat_directory += "/"
 
-	output_dict["created_on"] = str(datetime.today() )
+	output_dict["created_on"] = str(datetime.now().replace(microsecond=0) )
 	output_dict["history"] = days_history
 	
 	start_datetime = datetime.today() - timedelta(days = days_history)
