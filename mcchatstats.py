@@ -61,7 +61,7 @@ def locationName(user_location, locations_filename, location_threshold = 512):
 
 	distances = dict()
 	for location in locations:
-		distances[location['text']].encode('ascii', 'ignore') = magnitude(location['x'], location['z'], user_location[0], user_location[2])
+		distances[location['text'].encode('ascii', 'ignore')] = magnitude(location['x'], location['z'], user_location[0], user_location[2])
 	
 	nearest = min(distances, key=distances.get)
 	
