@@ -27,6 +27,7 @@ from nbt.nbt import NBTFile
 debug = True
 gzip_logfile_extension = ".log.gz" # default is ".log.gz"
 action_list = list()
+player_uuid = dict()
 
 def daterange(start_date, end_date):
 	# http://stackoverflow.com/a/1060330
@@ -81,9 +82,12 @@ def humaniseDays(days):
 def insertLogfileLine(current_date, line):
 	p = line.split()
 	global action_list
+	global player_uuid
 
 	try:
 		if (p[4] == "logged"):
+			# 0          1       2             3                   4      5  6    7      8  9   10  11 12 13
+			# [18:02:40] [Server thread/INFO]: $PLAYER[/$IP:$PORT] logged in with entity id $ID at ($X,$Y,$Z)
 			current_timestamp = datetime.strptime(current_date + " " + str(p[0][1:-1]), "%Y-%m-%d %H:%M:%S") # minus '[' and ']'
 			player = str(p[3].split('[', 1)[0]) # before '[/ip address]'
 			action = "connected"
@@ -99,6 +103,13 @@ def insertLogfileLine(current_date, line):
 			action = "disconnected"
 			
 			action_list.append({"timestamp": current_timestamp, "player": player, "action": action} )
+
+		elif (p[4] == "UUID"):
+			# 0          1     2             3          4    5  6      7       8  9
+			# [22:33:38] [User Authenticator #63/INFO]: UUID of player $PLAYER is $UUID
+			player = str(p[7])
+			uuid = str(p[9])
+			player_uuid[player] = uuid # assume the most recent is most valid
 
 	except IndexError:
 		return 1
@@ -184,7 +195,7 @@ def main(*args):
 	
 	# NBT Parsing
 	for p in players:
-		player_dat = player_dat_directory + p + ".dat"
+		player_dat = player_dat_directory + player_uuid[p] + ".dat"
 		if os.path.isfile(player_dat):
 			nbt_player = NBTFile(player_dat)
 			players[p]["health"] = int(str(nbt_player["Health"]))   
