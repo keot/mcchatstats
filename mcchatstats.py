@@ -206,7 +206,7 @@ def main(*args):
 	
 	output_dict["players"] = players
 
-	print json.dumps(output_dict, ensure_ascii = False)
+	print json.dumps(output_dict, ensure_ascii = False, sort_keys = True)
 
 	return 0
 
